@@ -2,7 +2,7 @@
 
 # Ścieżka do folderu szablonów Pterodactyl Panel
 TEMPLATE_DIR="/var/www/pterodactyl/resources/views/layouts"
-LANGUAGE_SCRIPT_PATH="$TEMPLATE_DIR/language_switcher.blade.php"
+LANGUAGE_SCRIPT_PATH="$TEMPLATE_DIR/admin.blade.php"
 
 # Sprawdź, czy folder szablonów istnieje
 if [ ! -d "$TEMPLATE_DIR" ]; then
@@ -24,7 +24,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Dodaj flagi do pliku szablonu
-cat <<EOL > "$LANGUAGE_SCRIPT_PATH"
+cat <<EOL >> "$LANGUAGE_SCRIPT_PATH"
 <div class="language-switcher">
     <a href="#" onclick="changeLanguage('pl')">
         <img src="https://flagcdn.com/w20/pl.png" alt="Polski" width="20" height="15">
@@ -34,37 +34,32 @@ cat <<EOL > "$LANGUAGE_SCRIPT_PATH"
     </a>
 </div>
 
-<h1 id="page-title">Welcome to Pterodactyl Panel</h1>
-<p id="page-description">Manage your game servers with ease.</p>
-
 <script>
-const translations = {
-    pl: {
-        title: "Witaj w Pterodactyl Panel",
-        description: "Zarządzaj swoimi serwerami gier z łatwością."
-    },
-    en: {
-        title: "Welcome to Pterodactyl Panel",
-        description: "Manage your game servers with ease."
-    }
-};
-
 function changeLanguage(lang) {
-    localStorage.setItem('language', lang);
-    updateContent(lang);
-    location.reload();
-}
+    const googleTranslateScript = document.createElement('script');
+    googleTranslateScript.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    document.body.appendChild(googleTranslateScript);
 
-function updateContent(lang) {
-    document.getElementById("page-title").innerText = translations[lang].title;
-    document.getElementById("page-description").innerText = translations[lang].description;
+    window.googleTranslateElementInit = function() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'en', // język oryginalny strony
+            includedLanguages: 'en,pl', // dostępne języki
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+
+        const element = document.getElementById('google_translate_element');
+        const select = element.querySelector('select');
+        select.value = lang; // Ustaw wybrany język
+        select.dispatchEvent(new Event('change'));
+    };
 }
 
 window.onload = function() {
-    var lang = localStorage.getItem('language') || 'en'; // Domyślny język to angielski
-    updateContent(lang);
+    const lang = localStorage.getItem('language') || 'en'; // Domyślny język to angielski
+    changeLanguage(lang);
 };
 </script>
+<div id="google_translate_element"></div>
 EOL
 
 # Sprawdź, czy zapisanie pliku powiodło się
